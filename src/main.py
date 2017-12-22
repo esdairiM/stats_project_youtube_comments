@@ -1,24 +1,41 @@
 import pprint
-from src import extractot,wrapper
+import queue
+import threading
+import time
 
-wrapper=wrapper.Wrapper()
-
-yout=wrapper.get_youtube_connection()
-database=wrapper.get_youtube_connection()
-
-videoId = '-UAvLhaF-Eg'
+from src import factory
+from src.services import extractot
 
 
-def get_and_format_comments(videoId):
-    comments = list()
-    for res in yout.get_all_comments(videoId):
-        commentlist = extractot.get_comments(res, videoId)
-        comments.extend(commentlist)
-    return comments
+def get_comments(videoId):
+    for res in youtube.get_all_comments(videoId):
+        json_comments.put(res)
 
 
-comments= get_and_format_comments(videoId)
+def process_comments(videoId):
+    while thread1.isAlive():
+        commentlist = extractot.get_comments(json_comments.get(), videoId)
+        processed_comments.extend(commentlist)
 
-pprint.pprint(comments[2:5])
 
+if __name__ == "__main__":
+    print("start")
+    connection_factory = factory.ConnectionFactory()
+    youtube = connection_factory.get_api_connection()
+    database = connection_factory.get_database_connection()
+    print("finished building ")
+    videoId = '-UAvLhaF-Eg'
 
+    global processed_comments, json_comments, thread1
+    processed_comments = list()
+    json_comments = queue.LifoQueue()
+
+    t = time.time()
+    thread1 = threading.Thread(target=get_comments, args=(videoId,))
+    thread2 = threading.Thread(target=process_comments, args=(videoId,))
+    thread1.start()
+    thread2.start()
+    thread1.join()
+    thread1.join()
+    print(time.time() - t)
+    pprint.pprint(len(processed_comments))

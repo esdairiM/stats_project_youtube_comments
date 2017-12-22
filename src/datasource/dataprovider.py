@@ -1,9 +1,10 @@
-from googleapiclient.discovery import build
-import googleapiclient.errors as gerrors
 import logging
 
+import googleapiclient.errors as gerrors
+from googleapiclient.discovery import build
 
-class Youtube:
+
+class Provider:
     def __init__(self, configuration, logger=None):
         self._logger = logger or logging.getLogger(__name__)
         self._logger.info('building the data provider')
@@ -13,6 +14,7 @@ class Youtube:
     '''this method will attempt to fetch commentThread list from the api 
     for a given videoId and return the json string, if it succeeds
     else it will pass'''
+
     def get_video_comments(self, video_id, part=['snippet'], order='relevance', maxResults=20):
         '''
         input:
@@ -34,6 +36,7 @@ class Youtube:
     '''this method is a generator that will attempt to fetch commentThread list from the api for a given videoId
     and return the json string with a 100 elements each time if it succeeds while there is a next page token
     else it will pass'''
+
     def get_all_comments(self, video_id, part=['snippet'], order='relevance'):
         '''
         input:

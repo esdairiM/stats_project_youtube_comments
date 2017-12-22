@@ -1,15 +1,17 @@
-from src import youtube, database
 import json
-import os
-import logging.config
 import logging
+import logging.config
+import os
+
+from src.datasource import dataprovider
+from src.datastore import database
 
 
-class Wrapper:
+class ConnectionFactory:
     def __init__(self):
         self.init_logger()
         self._logger = logging.getLogger(__name__)
-        self._youtube_connection = None
+        self._api_connection = None
         self._database_connection = None
 
     @staticmethod
@@ -20,18 +22,18 @@ class Wrapper:
             pass
         # load the logging configuration
         logging.config.fileConfig(
-            '../configuration/logging.ini',
-            defaults={'logfilename': '../log/youtube_comments_stats.log'}
+            '../configuration/logging_config.ini',
+            defaults={'logfilename': '../log/logFile.log'}
         )
 
 
-    def get_youtube_connection(self):
-        if self._youtube_connection is None:
-            # getting youtube api keys
-            with open('../configuration/youout_api_config.json', 'r') as config:
-                youtube_conf = json.load(config)
-            self._youtube_connection = youtube.Youtube(youtube_conf)
-        return self._youtube_connection
+    def get_api_connection(self):
+        if self._api_connection is None:
+            # getting api keys
+            with open('../configuration/api_config.json', 'r') as config:
+                api_conf = json.load(config)
+            self._api_connection = dataprovider.Provider(api_conf)
+        return self._api_connection
 
     def get_database_connection(self):
         if self._database_connection is None:

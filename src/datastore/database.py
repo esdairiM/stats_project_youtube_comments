@@ -1,5 +1,6 @@
-import pymongo as mongo
 import logging
+
+import pymongo as mongo
 
 
 class Database:
@@ -28,17 +29,16 @@ class Database:
         except mongo.errors.PyMongoError:
             raise Exception('failed at creating index')
 
-    def insert_many_tok(self, collection_name, items):
-        res1=self._db[collection_name].insert_many(items)
-        res2=self._db['tokenized' + collection_name].insert_many(items)
-        return res1,res2
+    def insert_preprocessed_data(self, collection_name, items):
+        res = self._db['tokenized' + collection_name].insert_many(items)
+        return res
     
-    def insert_many(self, collection_name,items):
+    def insert_data(self, collection_name,items):
         return  self._db[collection_name].insert_many(items)
 
     def find_by_video_id(self, collection_name,video_id):
         return self._db[collection_name].find({'videoId': video_id})
 
-    def find_by_text_in_comment(self, collection_name,text):
+    def find_by_expression(self, collection_name,text):
         return self._db[collection_name].find({'$text': {'$search': text}})
 
