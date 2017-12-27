@@ -6,10 +6,15 @@ from googleapiclient.discovery import build
 
 class Provider:
     def __init__(self, configuration, logger=None):
-        self._logger = logger or logging.getLogger(__name__)
-        self._logger.info('building the data provider')
-        self._service = build(configuration["API_SERVICE_NAME"], configuration["API_VERSION"],
-                              developerKey=configuration["api_key"], cache_discovery=False)
+        try:
+            self._logger = logger or logging.getLogger(__name__)
+            self._logger.info('building the data provider')
+            self._service = build(configuration["API_SERVICE_NAME"], configuration["API_VERSION"],
+                                  developerKey=configuration["api_key"], cache_discovery=False)
+        except gerrors.Error as e:
+            self._logger.info(e._get_reason())
+            raise Exception("Error initializing provider")
+
 
     '''this method will attempt to fetch commentThread list from the api 
     for a given videoId and return the json string, if it succeeds
@@ -31,8 +36,7 @@ class Provider:
                                                        maxResults=maxResults).execute()
         except gerrors.Error as e:
             self._logger.info(e._get_reason())
-            pass
-
+            raise e
     '''this method is a generator that will attempt to fetch commentThread list from the api for a given videoId
     and return the json string with a 100 elements each time if it succeeds while there is a next page token
     else it will pass'''
@@ -57,4 +61,4 @@ class Provider:
             return commentThreads_doc
         except gerrors.Error as e:
             self._logger.info(e._get_reason())
-            pass
+            raise e

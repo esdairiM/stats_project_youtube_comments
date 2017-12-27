@@ -6,11 +6,14 @@ import pymongo as mongo
 class Database:
 
     def __init__(self, configuration, logger=None):
-        self.logger = logger or logging.getLogger(__name__)
-        self._client = mongo.MongoClient(configuration['hostname'], configuration['port'])
-        self._db = self._client[configuration['bdname']]
+        try:
+            self.logger = logger or logging.getLogger(__name__)
+            self._client = mongo.MongoClient(configuration['hostname'], configuration['port'])
+            self._db = self._client[configuration['bdname']]
+        except mongo.errors.PyMongoError:
+            raise Exception('Error initializing database')
 
-    def create_collection(self, collection_name, have_tokenized_version=False):
+    def create_store(self, collection_name, have_tokenized_version=False):
         try:
             mongo.collection.Collection(self._db, collection_name, create=True)
             if have_tokenized_version:
@@ -27,17 +30,29 @@ class Database:
                     default_language=default_lang
                 )
         except mongo.errors.PyMongoError:
-            raise Exception('failed at creating index')
+            raise Exception('Index already exist')
 
     def insert_preprocessed_data(self, collection_name, items):
-        res = self._db['tokenized' + collection_name].insert_many(items)
-        return res
+        try:
+            res = self._db['tokenized' + collection_name].insert_many(items)
+            return res
+        except mongo.errors.PyMongoError:
+            raise Exception('failed to insert processed data')
 
-    def insert_data(self, collection_name, items):
-        return self._db[collection_name].insert_many(items)
+    def insert(self, collection_name, items):
+        try:
+            return self._db[collection_name].insert_many(items)
+        except mongo.errors.PyMongoError:
+            raise Exception('failed to insert data')
 
     def find_by_video_id(self, collection_name, video_id):
-        return self._db[collection_name].find({'videoId': video_id})
+        try:
+            return self._db[collection_name].find({'videoId': video_id})
+        except mongo.errors.PyMongoError:
+            raise Exception('failed to find video by id')
 
     def find_by_expression(self, collection_name, text):
-        return self._db[collection_name].find({'$text': {'$search': text}})
+        try:
+            return self._db[collection_name].find({'$text': {'$search': text}})
+        except mongo.errors.PyMongoError:
+            raise Exception('failed to execute find request')
