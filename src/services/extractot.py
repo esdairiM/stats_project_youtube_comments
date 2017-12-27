@@ -3,7 +3,9 @@ from datetime import datetime
 
 '''this method will attempt to get you comments from a json string
 if fail it will pass'''
-def get_comments(json_string,video_id):
+
+
+def get_comments(json_string, video_id):
     logger = logging.getLogger(__name__)
     '''
         input:
@@ -22,13 +24,13 @@ def get_comments(json_string,video_id):
         
     '''
     if json_string:
-        comments=[]
+        comments = []
         for item in json_string["items"]:
             comments.append(
                 {
-                    'videoId':video_id,
+                    'videoId': video_id,
                     'created_at': datetime.now(),
-                    'auther':item["snippet"]['topLevelComment']["snippet"]["authorDisplayName"],
+                    'auther': item["snippet"]['topLevelComment']["snippet"]["authorDisplayName"],
                     'comment': item["snippet"]['topLevelComment']["snippet"]['textOriginal']
                 }
             )

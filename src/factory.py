@@ -26,7 +26,6 @@ class ConnectionFactory:
             defaults={'logfilename': '../log/logFile.log'}
         )
 
-
     def get_api_connection(self):
         if self._api_connection is None:
             # getting api keys

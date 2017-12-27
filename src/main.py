@@ -1,10 +1,12 @@
 import pprint
+import time
 import queue
 import threading
-import time
 
-from src import factory
-from src.services import extractot
+from src.datasource import factory as datasource
+from src.datastore import factory as datastore
+
+from src.services import extractot,logger
 
 
 def get_comments(videoId):
@@ -19,10 +21,9 @@ def process_comments(videoId):
 
 
 if __name__ == "__main__":
-    print("start")
-    connection_factory = factory.ConnectionFactory()
-    youtube = connection_factory.get_api_connection()
-    database = connection_factory.get_database_connection()
+    logger.init_logger()
+    youtube = datasource.DataSourceFactory().get_api_connection()
+    database = datastore.DatabaseFactory().get_database_connection()
     print("finished building ")
     videoId = '-UAvLhaF-Eg'
 
