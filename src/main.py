@@ -1,14 +1,24 @@
-import pprint
-from time import time
-from src.services.etl import ETLService
 from src.services import logger
-
-
+from src.services.etl import ETLService
+from src.services.statisticsService import StatisticsService
+from pprint import pprint
 if __name__ == "__main__":
     logger.init_logger()
-    etl=ETLService()
+    etl = ETLService()
     print("finished building ")
     videoId = '-UAvLhaF-Eg'
-    processed_comments=etl.extract_and_transform(videoId).get_comments()
-    print(len(processed_comments))
-    pprint.pprint(processed_comments[:4])
+    res = True
+    # res=etl.extract_and_transform(videoId).load()
+    print("finished loading data")
+    if res:
+        statistics_service = StatisticsService()
+        count = statistics_service.get_comments_count(videoId)
+        print("number of comments is {}".format(count))
+        quarter,quarter_count,with_likes_count= statistics_service.get_first_quarter(videoId,zerolikes=True)
+        if quarter is not None:
+            print(quarter_count)
+            print(with_likes_count)
+        most_popular=statistics_service.get_most_popular_comment(videoId)
+        if most_popular is not None:
+            pprint(most_popular)
+

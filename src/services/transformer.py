@@ -2,6 +2,7 @@ import logging
 from datetime import datetime
 from numba import jit
 from langdetect import detect,DetectorFactory
+from langdetect.lang_detect_exception import LangDetectException
 
 DetectorFactory.seed = 0
 
@@ -27,10 +28,13 @@ language_dict={
 }
 
 def get_lang(text):
-    lang=detect(text)
-    if lang in language_dict.keys():
-        return language_dict[lang]
-    else:
+    try:
+        lang=detect(text)
+        if lang in language_dict.keys():
+            return language_dict[lang]
+        else:
+            return None
+    except LangDetectException as e:
         return None
 
 

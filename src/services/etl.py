@@ -20,11 +20,11 @@ class ETLService:
         self._logger = logger or logging.getLogger(__name__)
         self._logger.info('Starting ETL service')
         self._api = datasource.DataSourceFactory().get_api_connection()
-        self._database = datastore.DatabaseFactory().get_database_connection()
+        self._database = datastore.DatabaseFactory().get_database_service()
         self.comments = list()
         self._json_comments = queue.Queue()
-        self._extractor_thread: threading.Thread
-        self._transformer_thread: threading.Thread
+        self._extractor_thread: threading.Thread=None
+        self._transformer_thread: threading.Thread=None
         self.videoId = None
 
     def extract_and_transform(self, videoId):
@@ -54,17 +54,10 @@ class ETLService:
 
         :return boolean:True if success else False
         """
-        try:
-            if self.comments:
-                self._logger.info('starting to load data')
-                self._database.insery(self.comments)
-                self._logger.info('finished loading data')
-                return True
-            else:
-                return False
-        except Exception as e:
-            self._logger.warning(str(e))
-            return False
+        if self.comments:
+            print("comments count before load {}".format(len(self.comments)))
+            return self._database.load_data(self.comments)
+
 
     def _get_comments(self, videoId):
         """
@@ -79,11 +72,9 @@ class ETLService:
         while the tread is alive it will take out data from the queue and transform it
         :param videoId:
         """
-        while self._extractor_thread.isAlive():
-            t = time()
+        while self._extractor_thread.is_alive() or not self._json_comments.empty():
             commentlist = transformer.get_comments(self._json_comments.get(), videoId)
             self.comments.extend(commentlist)
-            print(time() - t)
 
     def get_comments(self):
         """
