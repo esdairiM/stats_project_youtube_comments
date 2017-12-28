@@ -15,19 +15,17 @@ class Provider:
             self._logger.info(e._get_reason())
             raise Exception("Error initializing provider")
 
-
-    '''this method will attempt to fetch commentThread list from the api 
-    for a given videoId and return the json string, if it succeeds
-    else it will pass'''
-
     def get_video_comments(self, video_id, part=['snippet'], order='relevance', maxResults=20):
         '''
+        this method will attempt to fetch commentThread list from the api
+        for a given videoId and return the json string, if it succeeds
+        else it will pass
         input:
             :param video_id: the id of the youtube video
             :param part:(Optional) an array where you specif the response content, default is snippet, other options: replies
             :param order:(Optional) comments order, default is relevance, other option is time
             :param maxResults:(Optional) the number of the results, default is 20 max is 100
-        output:
+        output:part
             :return commentThread list : https://developers.google.com/youtube/v3/docs/commentThreads/list#response
         '''
         try:
@@ -37,12 +35,12 @@ class Provider:
         except gerrors.Error as e:
             self._logger.info(e._get_reason())
             raise e
-    '''this method is a generator that will attempt to fetch commentThread list from the api for a given videoId
-    and return the json string with a 100 elements each time if it succeeds while there is a next page token
-    else it will pass'''
 
     def get_all_comments(self, video_id, part=['snippet'], order='relevance'):
         '''
+        this method is a generator that will attempt to fetch commentThread list from the api for a given videoId
+        and return the json string with a 100 elements each time if it succeeds while there is a next page token
+        else it will pass.
         input:
             :param video_id: the id of the youtube video
             :param part   :(Optional)  an array where you specif the response content, default is snippet, other options: replies

@@ -1,8 +1,38 @@
 import logging
 from datetime import datetime
 from numba import jit
-'''this method will attempt to get you comments from a json string
-if fail it will pass'''
+from langdetect import detect,DetectorFactory
+
+DetectorFactory.seed = 0
+
+language_dict={
+    'da':'da',
+    'nl':'nl',
+    'en':'en',
+    'di':'di',
+    'fr':'fr',
+    'de':'de',
+    'hu':'hu',
+    'it':'it',
+    'nb':'nb',
+    'pt':'pt',
+    'ro':'ro',
+    'ru':'ru',
+    'es':'es',
+    'sv':'sv',
+    'tr':'tr',
+    'ar':'ara',
+    'fa':'pes',
+    'ur':'urd'
+}
+
+def get_lang(text):
+    lang=detect(text)
+    if lang in language_dict.keys():
+        return language_dict[lang]
+    else:
+        return None
+
 
 @jit
 def get_comments(json_string, video_id):
@@ -31,7 +61,8 @@ def get_comments(json_string, video_id):
                 {
                     'videoId': video_id,
                     'created_at': datetime.now(),
-                    'auther': item["snippet"]['topLevelComment']["snippet"]["authorDisplayName"],
+                    'author': item["snippet"]['topLevelComment']["snippet"]["authorDisplayName"],
+                    'lang':get_lang(item["snippet"]['topLevelComment']["snippet"]['textOriginal']),
                     'comment': item["snippet"]['topLevelComment']["snippet"]['textOriginal'],
                     'likes':item["snippet"]['topLevelComment']["snippet"]['likeCount']
                 }
