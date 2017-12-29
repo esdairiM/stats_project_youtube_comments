@@ -76,15 +76,17 @@ class Database:
         except mongo.errors.PyMongoError:
             raise Exception('failed to insert data')
 
-    def find_by_video_id(self, collection_name, video_id):
+    def find_by_video_id(self, collection_name, video_id,kvargs={}):
         """
 
         :param collection_name:
         :param video_id:
-        :return: documents fro the same video
+        :param kvargs: {"key":val,...}possible key="comment","videoId","created_at","author", "lang", "likes","_id"
+        possible val:1 to fetch,0 to ignore
+        :return:
         """
         try:
-            return self._db[collection_name].find({'videoId': video_id})
+            return self._db[collection_name].find({'videoId': video_id}, kvargs)
         except mongo.errors.PyMongoError:
             raise Exception('failed to find video by id')
 

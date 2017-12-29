@@ -1,4 +1,3 @@
-import pymongo
 from src.datastore.database import Database
 import logging
 
@@ -12,6 +11,7 @@ class DatabaseService:
         self._last_videoId=None
         self._last_find_result=None
         self._last_find_count=0
+        self._last_kvargs=None
 
     def load_data(self,comments):
         self._logger.info('starting to load data')
@@ -42,7 +42,7 @@ class DatabaseService:
         except:
             pass
 
-    def find_by_videoId(self,videoId,cash=True):
+    def find_by_videoId(self,videoId,only_comments=False,cash=True,kvargs={"comment":1,"author":1,"lang":1,"likes":1,"_id":0}):
         """
 
         :param videoId:
@@ -50,18 +50,23 @@ class DatabaseService:
         :param cash:
         :return:
         """
+
         # if videoid is the same as last one return last result
-        if cash and videoId==self._last_videoId:
+        if cash and videoId==self._last_videoId and self._last_kvargs==kvargs:
+            if only_comments:
+                return self._last_find_result
             return self._last_find_result,self._last_find_count
         elif videoId is not None and videoId!= "":
-            cursor=list(self._database.find_by_video_id(self._collection_name,videoId))
+            cursor=list(self._database.find_by_video_id(self._collection_name,videoId,kvargs=kvargs))
             count=len(cursor)
             # optimize research by saving the last search result if cash is true
             if cash:
                 self._last_find_result=cursor
                 self._last_videoId=videoId
                 self._last_find_count=count
+                self._last_kvargs= kvargs
+            if only_comments:
+                return cursor
             return cursor,count
         else:
             return None,None
-

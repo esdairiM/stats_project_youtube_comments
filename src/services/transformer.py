@@ -3,29 +3,10 @@ from datetime import datetime
 from numba import jit
 from langdetect import detect,DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
+from src.datastore.languagesAbreviationMapping import language_abreviation as language_dict
 
+# force langd_etect to choose one language, throws exception is it can't
 DetectorFactory.seed = 0
-
-language_dict={
-    'da':'da',
-    'nl':'nl',
-    'en':'en',
-    'di':'di',
-    'fr':'fr',
-    'de':'de',
-    'hu':'hu',
-    'it':'it',
-    'nb':'nb',
-    'pt':'pt',
-    'ro':'ro',
-    'ru':'ru',
-    'es':'es',
-    'sv':'sv',
-    'tr':'tr',
-    'ar':'ara',
-    'fa':'pes',
-    'ur':'urd'
-}
 
 def get_lang(text):
     try:
