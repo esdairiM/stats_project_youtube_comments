@@ -1,27 +1,13 @@
 import logging
 from datetime import datetime
 from numba import jit
-from langdetect import detect,DetectorFactory
-from langdetect.lang_detect_exception import LangDetectException
-from src.datastore.languagesAbreviationMapping import language_abreviation as language_dict
 
-# force langd_etect to choose one language, throws exception is it can't
-DetectorFactory.seed = 0
+from src.services.textPrecessingService import get_lang
 
-def get_lang(text):
-    try:
-        lang=detect(text)
-        if lang in language_dict.keys():
-            return language_dict[lang]
-        else:
-            return None
-    except LangDetectException as e:
-        return None
 
 
 @jit
 def get_comments(json_string, video_id):
-    logger = logging.getLogger(__name__)
     '''
         input:
             :param json_string : json response from youtube data api list of comment threads  
@@ -39,20 +25,20 @@ def get_comments(json_string, video_id):
             ...]
         
     '''
+    logger = logging.getLogger(__name__)
     if json_string:
         comments = []
         for item in json_string["items"]:
-            comments.append(
-                {
-                    'videoId': video_id,
-                    'created_at': datetime.now(),
-                    'author': item["snippet"]['topLevelComment']["snippet"]["authorDisplayName"],
-                    'lang':get_lang(item["snippet"]['topLevelComment']["snippet"]['textOriginal']),
-                    'comment': item["snippet"]['topLevelComment']["snippet"]['textOriginal'],
-                    'likes':item["snippet"]['topLevelComment']["snippet"]['likeCount']
-                }
-            )
+            formated_dict = {
+                'videoId': video_id,
+                'created_at': datetime.now(),
+                'author': item["snippet"]['topLevelComment']["snippet"]["authorDisplayName"],
+                'comment': item["snippet"]['topLevelComment']["snippet"]['textOriginal'],
+                'lang': get_lang(item["snippet"]['topLevelComment']["snippet"]['textOriginal']),
+                'likes': item["snippet"]['topLevelComment']["snippet"]['likeCount']
+            }
+            comments.append(formated_dict)
         return comments
     else:
-        logger.warn('empty json string ')
+        logger.warning('empty json string ')
         pass

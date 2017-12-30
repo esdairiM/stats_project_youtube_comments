@@ -20,7 +20,7 @@ class ETLService:
         self._logger = logger or logging.getLogger(__name__)
         self._logger.info('Starting ETL service')
         self._api = datasource.DataSourceFactory().get_api_connection()
-        self._database = datastore.DatabaseFactory().get_database_service()
+        self._database = datastore.DatabaseFactory().build().get_database_service()
         self.comments = list()
         self._json_comments = queue.Queue()
         self._extractor_thread: threading.Thread=None
@@ -35,17 +35,21 @@ class ETLService:
         :param videoId:
         :return self: return this instance of this ETLService
         """
-        self.comments = list()
-        self._json_comments = queue.Queue()
-        self._logger.info('Starting data extraction thread')
-        self._extractor_thread = threading.Thread(target=self._get_comments, args=(videoId,))
-        self._logger.info('Starting data transformation thread')
-        self._transformer_thread = threading.Thread(target=self._process_comments, args=(videoId,))
-        self._extractor_thread.start()
-        self._transformer_thread.start()
-        self._extractor_thread.join()
-        self._transformer_thread.join()
-        self._logger.info('extraction and transformation finished with success')
+        comm,cnt=self._database.find_by_videoId(videoId,cash=True)
+        if cnt==0:
+            self.comments = list()
+            self._json_comments = queue.Queue()
+            self._logger.info('Starting data extraction thread')
+            self._extractor_thread = threading.Thread(target=self._get_api_comments, args=(videoId,))
+            self._logger.info('Starting data transformation thread')
+            self._transformer_thread = threading.Thread(target=self._process_comments, args=(videoId,))
+            self._extractor_thread.start()
+            self._transformer_thread.start()
+            self._extractor_thread.join()
+            self._transformer_thread.join()
+            self._logger.info('extraction and transformation finished with success')
+        else:
+            self.comments=comm
         return self
 
     def load(self):
@@ -54,12 +58,14 @@ class ETLService:
 
         :return boolean:True if success else False
         """
-        if self.comments:
-            print("comments count before load {}".format(len(self.comments)))
-            return self._database.load_data(self.comments)
+        try:
+            if self.comments:
+                return self._database.load_data(self.comments),"Success"
+        except Exception as e:
+            return False,str(e)
 
 
-    def _get_comments(self, videoId):
+    def _get_api_comments(self, videoId):
         """
         get a 100 comments each time and add theme to a queue
         :param videoId:

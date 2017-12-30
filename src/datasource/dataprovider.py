@@ -54,7 +54,6 @@ class Provider:
             request = commentThreads.list(part=','.join(part), videoId=video_id, order=order, maxResults=100)
             while request is not None:
                 commentThreads_doc = request.execute()
-                print("response totalResults {}".format(commentThreads_doc["pageInfo"]["totalResults"]))
                 yield commentThreads_doc
                 request = commentThreads.list_next(request, commentThreads_doc)
             return commentThreads_doc
