@@ -51,16 +51,7 @@ def parallel_counter(comments):
 
 
 def _count(comment):
-    # tokenize comment text
-    words = tokenize(comment["comment"])
-    # comment["lang"] is none if it's not supported by mongodb
-    # we have to detect language to remove stope words and stemme
-    try:
-        lang = comment["lang"] if comment["lang"] != "none" else detect(comment)
-    except  LangDetectException as e:
-        _getLogger(__name__).warning(str(e))
-        lang = None
-    filtred_words = prepare_words(words, lang)
+    filtred_words = prepare_words(comment)
     counter = Counter(filtred_words)
     return counter
 
@@ -72,7 +63,16 @@ def _summe(result):
     return count
 
 
-def prepare_words(words, lang):
+def prepare_words(comment, lang=None):
+    # comment["lang"] is none if it's not supported by mongodb
+    # we have to detect language to remove stope words and stemme
+    try:
+        lang = comment["lang"] if comment["lang"] != "none" else detect(comment)
+    except  LangDetectException as e:
+        _getLogger(__name__).warning(str(e))
+        pass
+    # tokenize comment text
+    words = tokenize(comment["comment"])
     # remove numbers and punctuation
     filtred_words = remove_punctuation(words)
     # remove stop words
@@ -82,6 +82,15 @@ def prepare_words(words, lang):
     return filtred_words
 
 
+def prepare_texts(comments):
+    filtred_comments=[]
+    authors=[]
+    for comment in comments:
+        authors.append(comment["author"])
+        filtred_comments.append(" ".join(prepare_words(comment)))
+    return {"author":authors,"comments":filtred_comments}
+
+
 def stemme_words(words: list, lang) -> list:
     if stemme and lang is not None and lang in _lang_names.keys():
         stemmer = _SnowballStemmer(_lang_names[lang])
@@ -89,7 +98,7 @@ def stemme_words(words: list, lang) -> list:
     return words
 
 
-def stemme_text(text: str,returnList=True, lang=""):
+def stemme_text(text: str, returnList=True, lang=""):
     words = tokenize(text)
     lang = lang if lang != "" else get_lang(text)
     if stemme and lang is not None and lang in _lang_names.keys():
@@ -100,12 +109,14 @@ def stemme_text(text: str,returnList=True, lang=""):
     else:
         return " ".join(words)
 
+
 def remove_stop_words(words: list, lang) -> list:
     if noStopWords and lang is not None and lang in sw_languages_mapping:
         words = [word for word in words if word not in _get_stop_words(lang)]
     return words
 
-def remove_text_stop_words(text: str, lang="",returnList=True):
+
+def remove_text_stop_words(text: str, lang="", returnList=True):
     words = tokenize(text)
     lang = lang if lang != "" else get_lang(text)
     if noStopWords and lang is not None and lang in sw_languages_mapping:
@@ -114,6 +125,7 @@ def remove_text_stop_words(text: str, lang="",returnList=True):
         return words
     else:
         return " ".join(words)
+
 
 def remove_punctuation(words):
     if remove_numeric:
@@ -123,16 +135,16 @@ def remove_punctuation(words):
     return filtred_words
 
 
-def tokenize(text)->list:
+def tokenize(text) -> list:
     words = _word_tokenize(text.lower())
     return words
 
 
-def get_lang(text,main_language="en"):
+def get_lang(text, main_language="en"):
     try:
         lang = detect(text)
         if lang not in _mongo_langs:
-            lang=main_language
+            lang = main_language
         return lang
     except LangDetectException as e:
         _getLogger(__name__).warning(str(e))

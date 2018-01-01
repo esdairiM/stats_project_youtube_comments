@@ -31,6 +31,7 @@ if __name__ == "__main__":
         # print(statistics_service.plot_dict(dict(frequent_words)))
         # print(time()-t)
         # pprint(frequent_words)
-
+        t = time()
         res =statistics_service.expression_statistics("something",videoId)
+        print(time() - t)
         print(res)

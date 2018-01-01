@@ -1,12 +1,10 @@
 import logging
 from math import ceil
-
 import matplotlib.pyplot as plt
-
 from src.datastore.databaseService import DatabaseService
 from src.datastore.factory import DatabaseFactory
-from src.services.textPrecessingService import popular_words, tokenize,parallel_counter,stemme_text
-
+from src.services.textPrecessingService import popular_words, tokenize,parallel_counter,stemme_text,prepare_texts
+from pandas import DataFrame as frame
 
 class StatisticsService:
     def __init__(self, logger=None):
@@ -62,15 +60,28 @@ class StatisticsService:
         if words_number==1:
             counter=parallel_counter(results_list)
             occurence=counter.get(expression)
+            print(occurence)
             comments_count=self._database_service.find_by_videoId(videoId)[1]
             return occurence/comments_count
         else:
             pass
+    #
+    # def _calculate_mantiens_per_comment(self, expression, results_list, words_number):
+    #     if words_number==1:
+    #         counter=parallel_counter(results_list)
+    #         occurence=counter.get(expression)
+    #         return occurence/len(results_list)
+    #     else:
+    #         pass
+
+    # def _calculate_total_frequancy(self, expression, results_list, videoId, words_number):
+    #     result=prepare_texts(results_list)
+    #     df = frame(result)
+    #     df['COUNT'] = df["comments"].str.count(expression)
+    #     comments_count = self._database_service.find_by_videoId(videoId)[1]
+    #     occurence = df['COUNT'].sum()
+    #     print(occurence)
+    #     return occurence/comments_count
 
     def _calculate_mantiens_per_comment(self, expression, results_list, words_number):
-        if words_number==1:
-            counter=parallel_counter(results_list)
-            occurence=counter.get(expression)
-            return occurence/len(results_list)
-        else:
-            pass
+        pass
