@@ -16,19 +16,21 @@ if __name__ == "__main__":
     #print(msg)
     if res:
         statistics_service = StatisticsService()
-        print("finished building ")
-        count = statistics_service.get_comments_count(videoId)
-        print("number of comments is {}".format(count))
-        quarter,quarter_count,with_likes_count= statistics_service.get_first_quarter(videoId,remove_zerolikes=True)
-        if quarter is not None:
-            print(quarter_count)
-            print(with_likes_count)
-        most_popular=statistics_service.get_most_popular_comment(videoId)
-        if most_popular is not None:
-            pprint(most_popular)
-        t=time()
-        frequent_words=statistics_service.get_words_by_frequency(videoId)
-        print(statistics_service.plot_dict(dict(frequent_words)))
-        print(time()-t)
-        pprint(frequent_words)
+        # print("finished building ")
+        # count = statistics_service.get_comments_count(videoId)
+        # print("number of comments is {}".format(count))
+        # quarter,quarter_count,with_likes_count= statistics_service.get_first_quarter(videoId,remove_zerolikes=True)
+        # if quarter is not None:
+        #     print(quarter_count)
+        #     print(with_likes_count)
+        # most_popular=statistics_service.get_most_popular_comment(videoId)
+        # if most_popular is not None:
+        #     pprint(most_popular)
+        # t=time()
+        # frequent_words=statistics_service.get_words_by_frequency(videoId)
+        # print(statistics_service.plot_dict(dict(frequent_words)))
+        # print(time()-t)
+        # pprint(frequent_words)
 
+        res =statistics_service.expression_statistics("something",videoId)
+        print(res)

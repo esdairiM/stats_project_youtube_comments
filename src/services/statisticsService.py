@@ -1,9 +1,12 @@
 import logging
-from src.services.textPrecessingService import get_common_words,tokenize
+from math import ceil
+
+import matplotlib.pyplot as plt
+
 from src.datastore.databaseService import DatabaseService
 from src.datastore.factory import DatabaseFactory
-from math import ceil
-import matplotlib.pyplot as plt
+from src.services.textPrecessingService import popular_words, tokenize,parallel_counter,stemme_text
+
 
 class StatisticsService:
     def __init__(self, logger=None):
@@ -14,42 +17,60 @@ class StatisticsService:
         count = self._database_service.find_by_videoId(videoId)[1]
         return count
 
-    def get_first_quarter(self, videoId,remove_zerolikes=False):
+    def get_first_quarter(self, videoId, remove_zerolikes=False):
         # if video id was given
         comments, count = self._database_service.find_by_videoId(videoId)
         if comments is not None:
             # calculate the quarter of the comments
             quarter = ceil(count / 4)
-            with_likes_count=quarter
+            with_likes_count = quarter
             # make the cursor a list
             first_quarter = comments[:quarter]
             if remove_zerolikes:
                 first_quarter = list(filter(lambda comment: comment["likes"] > 0, first_quarter))
-                with_likes_count=len(first_quarter)
+                with_likes_count = len(first_quarter)
             # return the list
-            return first_quarter,quarter,with_likes_count
+            return first_quarter, quarter, with_likes_count
         else:
-            return None,None,None
+            return None, None, None
 
-    def get_most_popular_comment(self,videoId):
+    def get_most_popular_comment(self, videoId):
         try:
             return self._database_service.find_by_videoId(videoId)[0][0]
         except:
             return None
 
-    def get_words_by_frequency(self,videoId,first=10):
-        comments=self._database_service.find_by_videoId(videoId,only_comments=True)
-        words=get_common_words(comments,first)
+    def get_words_by_frequency(self, videoId, first=10):
+        comments = self._database_service.find_by_videoId(videoId)[1]
+        words = popular_words(comments, first)
         return words
 
-    def plot_dict(self,words_dict):
-        plt.bar(range(len(words_dict)), words_dict.values(), align='center')
-        plt.xticks(range(len(words_dict)), words_dict.keys())
+    def barpolt_dict(self, data:dict):
+        plt.bar(range(len(data)), data.values(), align='center')
+        plt.xticks(range(len(data)), data.keys())
         plt.show()
 
-    def expression_statistics(self,expression,videoId="",ignore_stopwords=True,with_stemming=True):
-        total_frequance:float
-        mantiens_per_comment:float
-        words_number=len(tokenize(expression))
-        results=self._database_service.find_expression(expression,words_number,videoId,ignore_stopwords,with_stemming)
-        return total_frequance,mantiens_per_comment
+    def expression_statistics(self, expression, videoId, caseSensitive=False) -> dict:
+        prepared_expression=stemme_text(expression,returnList=False)
+        words_number=len(prepared_expression.split(" "))
+        results_list, count = self._database_service.find_expression(prepared_expression, videoId, words_number, caseSensitive)
+        frequance = self._calculate_total_frequancy(prepared_expression, results_list, videoId, words_number)
+        mantiens_per_comment = self._calculate_mantiens_per_comment(prepared_expression, results_list, words_number)
+        return {"frequancy": frequance, "mpc": mantiens_per_comment}
+
+    def _calculate_total_frequancy(self, expression, results_list, videoId, words_number):
+        if words_number==1:
+            counter=parallel_counter(results_list)
+            occurence=counter.get(expression)
+            comments_count=self._database_service.find_by_videoId(videoId)[1]
+            return occurence/comments_count
+        else:
+            pass
+
+    def _calculate_mantiens_per_comment(self, expression, results_list, words_number):
+        if words_number==1:
+            counter=parallel_counter(results_list)
+            occurence=counter.get(expression)
+            return occurence/len(results_list)
+        else:
+            pass

@@ -14,7 +14,7 @@ class DatabaseService:
         self._last_find_count = 0
         self._last_kvargs: dict = None
 
-    def load_data(self, comments):
+    def load_data(self, comments)->bool:
         self._logger.info('starting to load data')
         try:
             # if comments not empty
@@ -38,7 +38,7 @@ class DatabaseService:
             self._logger.warning(str(e))
             raise e
 
-    def verify_collection_existence(self):
+    def verify_collection_existence(self)->None:
         try:
             self._database.create_store(self._collection_name)
         except Exception as e:
@@ -50,7 +50,7 @@ class DatabaseService:
             self._logger.warning(str(e))
             pass
 
-    def find_by_videoId(self, videoId, only_comments=False, cash=True, kvargs={}):
+    def find_by_videoId(self, videoId, cash=True, kvargs={})->tuple:
         """
 
         :param videoId:
@@ -62,34 +62,47 @@ class DatabaseService:
                   "_id": 0} if kvargs == {} else kvargs
 
         # if videoid is the same as last one return last result
-        if cash and self._last_find_count != 0 and videoId == self._last_videoId and self._last_kvargs == kvargs:
-            if only_comments:
-                return self._last_find_result
+        if cash and videoId == self._last_videoId and self._last_kvargs == kvargs:
             return self._last_find_result, self._last_find_count
         elif videoId is not None and videoId != "":
-            result_list = list(self._database.find_by_video_id(self._collection_name, videoId, kvargs=kvargs))
+            cursor=self._database.find_by_video_id(self._collection_name, videoId, kvargs=kvargs)
+            result_list = list(cursor)
             count = len(result_list)
             # optimize research by saving the last search result if cash is true
-            self.cash_result(cash, count, kvargs, result_list, videoId)
-            if only_comments:
-                return result_list
+            self._cash_result(cash, count, kvargs, result_list, videoId)
             return result_list, count
         else:
             return None, None
 
-    def find_expression(self, expression, words_number, videoId, ignore_stopwords, with_stemming):
-        if words_number == 1:
-            result = self._database.find_by_query(self._collection_name, {'$comment': {'$search': expression}})
-        return result
 
-    def cash_result(self, cash, count, kvargs, result_list, videoId):
+
+    def find_expression(self, expression: str, videoId: str, words_number: int, caseSensitive: bool) -> tuple:
+        if words_number == 1:
+            result = self._database.find_by_query(
+                self._collection_name,
+                {
+                    '$text': {'$search': expression, '$caseSensitive': caseSensitive},
+                    'videoId': videoId
+                }
+            )
+        elif words_number > 1:
+            result = self._database.find_by_query(
+                self._collection_name,
+                {
+                    '$text': {'$search': '\"' + expression + '\"'},
+                    'videoId': videoId
+                }
+            )
+        return list(result), result.count()
+
+    def _cash_result(self, cash: bool, count: int, kvargs: dict, result_list: list, videoId: str):
         if cash:
             self._last_find_result = result_list
             self._last_videoId = videoId
             self._last_find_count = count
             self._last_kvargs = kvargs
 
-    def uncash_resuls(self):
+    def _uncash_resuls(self):
         self._last_videoId: str = None
         self._last_find_result: list = None
         self._last_find_count = 0
