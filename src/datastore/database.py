@@ -74,6 +74,7 @@ class Database:
         :return:query results
         """
         try:
+            print(query)
             return self._db[collection_name].find(query)
         except mongo.errors.PyMongoError:
             raise Exception('failed to execute find request')

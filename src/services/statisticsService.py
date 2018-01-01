@@ -51,7 +51,7 @@ class StatisticsService:
         plt.show()
 
     def expression_statistics(self, expression, videoId) -> dict:
-        prepared_words=prepare_text(expression)
+        prepared_words = prepare_text(expression)
         prepared_expression = " ".join(prepared_words)
         words_number = len(prepared_expression)
         results_list, count = self._database_service.find_expression(prepared_expression, videoId, words_number)
@@ -90,7 +90,7 @@ class StatisticsService:
         return occurence / comments_number
 
     def _expression_occurence(self, df, expression):
-        #df['COUNT'] = df.comments.str.count(expression)
+        # df['COUNT'] = df.comments.str.count(expression)
         occurence = df.comments.str.count(expression).sum()
         return occurence
 
@@ -99,19 +99,35 @@ class StatisticsService:
         df = pd.DataFrame(result)
         return df
 
-    def prob_cond(self,expression1:str,expression2:str,videoId):
-        # if expression1
-        # prepared_words = prepare_text(expression1)
-        # prepared_expression1 = " ".join(prepared_words)
-        prepared_expression1=expression1
-        #words_number = len(prepared_words)
-        prepared_expression2 = " ".join(prepare_text(expression2))
-        print("expre1 "+prepared_expression1)
-        results_list, count = self._database_service.find_expression(prepared_expression1, videoId, 1)
+    def prob_cond(self, expression1: str, expression2: str, videoId):
+        # preparing expressions
+        prepared_expression1, prepared_expression2, words_number = self.processe_expressions(expression1, expression2)
+
+        # query data base fore element containing expression 1
+        results_list = self._database_service.find_expression(prepared_expression1, videoId, words_number)[0]
+
+        # if 1st expression doesn't exist in the dataset the probability is 0
+        if len(results_list)==0:
+            return 0
+        # creating a data frame
         df = self.create_df(results_list)
-        cnt=self._expression_occurence(df,prepared_expression1)
-        print("reslist "+str(count))
-        expression2_occurence=self._expression_occurence(df,prepared_expression2)
-        print(expression2_occurence)
-        print(cnt)
-        return expression2_occurence/cnt
+        # count occurrences
+        expression1_occurrence = self._expression_occurence(df, prepared_expression1)
+        expression2_occurrence = self._expression_occurence(df, prepared_expression2)
+        # calculating the probability
+        conditional_probability=expression2_occurrence / expression1_occurrence
+        result={
+            "ex1_occurence":expression1_occurrence,
+            "ex2_occurence":expression2_occurrence,
+            "proba":conditional_probability
+        }
+
+        return result
+
+    def processe_expressions(self, expression1, expression2):
+        # prepare expressions
+        prepared_words = prepare_text(expression1)
+        words_number = len(prepared_words)
+        prepared_expression1 = " ".join(prepared_words)
+        prepared_expression2 = " ".join(prepare_text(expression2))
+        return prepared_expression1, prepared_expression2, words_number

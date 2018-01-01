@@ -11,6 +11,7 @@ if __name__ == "__main__":
     # etl = ETLService()
     print("finished building ")
     videoId = '-UAvLhaF-Eg'
+    # videoId="g4nyUkm0ILg"
     res = True
     # res,msg=etl.extract_and_transform(videoId).load()
     # print(msg)
@@ -44,5 +45,5 @@ if __name__ == "__main__":
         # print(time() - t)
         # print(res)
 
-        prob=statistics_service.prob_cond("maher","bill",videoId)
+        prob=statistics_service.prob_cond("bill","bill",videoId)
         print(prob)

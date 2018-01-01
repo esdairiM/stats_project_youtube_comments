@@ -45,7 +45,7 @@ def prepare_text(comment: str, lang=None)->list:
     # comment["lang"] is none if it's not supported by mongodb
     # we have to detect language to remove stope words and stemme
     try:
-        lang = lang if lang != "none" and lang!= None else detect(comment)
+        lang = lang if lang != "none" and lang!= None else get_lang(comment)
     except  LangDetectException as e:
         _getLogger(__name__).warning(str(e))
         pass
@@ -94,15 +94,15 @@ def remove_stop_words(words: list, lang) -> list:
     return words
 
 
-# def remove_text_stop_words(text: str, lang="", returnList=True):
-#     words = tokenize(text)
-#     lang = lang if lang != "" else get_lang(text)
-#     if noStopWords and lang is not None and lang in sw_languages_mapping:
-#         words = [word for word in words if word not in _get_stop_words(lang)]
-#     if returnList:
-#         return words
-#     else:
-#         return " ".join(words)
+def remove_text_stop_words(text: str, lang="", returnList=True):
+    words = tokenize(text)
+    lang = lang if lang != "" else get_lang(text)
+    if noStopWords and lang is not None and lang in sw_languages_mapping:
+        words = [word for word in words if word not in _get_stop_words(lang)]
+    if returnList:
+        return words
+    else:
+        return " ".join(words)
 
 
 def remove_punctuation(words)->list:
