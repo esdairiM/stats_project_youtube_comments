@@ -14,7 +14,7 @@ class DatabaseService:
         self._last_find_count = 0
         self._last_kvargs: dict = None
 
-    def load_data(self, comments)->bool:
+    def load_data(self, comments) -> bool:
         self._logger.info('starting to load data')
         try:
             # if comments not empty
@@ -38,7 +38,7 @@ class DatabaseService:
             self._logger.warning(str(e))
             raise e
 
-    def verify_collection_existence(self)->None:
+    def verify_collection_existence(self) -> None:
         try:
             self._database.create_store(self._collection_name)
         except Exception as e:
@@ -50,7 +50,7 @@ class DatabaseService:
             self._logger.warning(str(e))
             pass
 
-    def find_by_videoId(self, videoId, cash=True, kvargs={})->tuple:
+    def find_by_videoId(self, videoId, cash=True, kvargs={}) -> tuple:
         """
 
         :param videoId:
@@ -58,14 +58,14 @@ class DatabaseService:
         :param cash:
         :return:
         """
-        kvargs = {"comment": 1, "author": 1, "created_at": 1, "lang": 1, "likes": 1,
+        kvargs = {"comment": 1, "original_comment": 1, "author": 1, "created_at": 1, "lang": 1, "likes": 1,
                   "_id": 0} if kvargs == {} else kvargs
 
         # if videoid is the same as last one return last result
         if cash and videoId == self._last_videoId and self._last_kvargs == kvargs:
             return self._last_find_result, self._last_find_count
         elif videoId is not None and videoId != "":
-            cursor=self._database.find_by_video_id(self._collection_name, videoId, kvargs=kvargs)
+            cursor = self._database.find_by_video_id(self._collection_name, videoId, kvargs=kvargs)
             result_list = list(cursor)
             count = len(result_list)
             # optimize research by saving the last search result if cash is true
@@ -74,9 +74,7 @@ class DatabaseService:
         else:
             return None, None
 
-
-
-    def find_expression(self, expression: str, videoId: str, words_number: int, caseSensitive: bool) -> tuple:
+    def find_expression(self, expression: str, videoId: str, words_number: int, caseSensitive: bool = False) -> tuple:
         if words_number == 1:
             result = self._database.find_by_query(
                 self._collection_name,
