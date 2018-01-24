@@ -28,7 +28,7 @@ DetectorFactory.seed = 0
 remove_numeric: bool = True
 
 
-def popular_words(comments, number):
+def popular_words(comments:list, number:int):
     _logger = _getLogger(__name__)
     _logger.info("initializing LanguageProcessing service")
     counter = counte_words(comments)
@@ -107,7 +107,7 @@ def remove_text_stop_words(text: str, lang="", returnList=True):
 
 def remove_punctuation(words)->list:
     if remove_numeric:
-        filtred_words=list(filter(lambda word:word.isalpha,words))
+        filtred_words=list(filter(lambda word:word.isalpha(),words))
         #filtred_words = [word for word in words if word.isalpha()]
     else:
         filtred_words = list(filter(lambda word: word.isalnum(), words))

@@ -1,7 +1,6 @@
 import logging
 import queue
 import threading
-from time import time
 
 import src.datasource.factory as datasource
 import src.datastore.factory as datastore
@@ -23,8 +22,8 @@ class ETLService:
         self._database = datastore.DatabaseFactory().build().get_database_service()
         self.comments = list()
         self._json_comments = queue.Queue()
-        self._extractor_thread: threading.Thread=None
-        self._transformer_thread: threading.Thread=None
+        self._extractor_thread: threading.Thread = None
+        self._transformer_thread: threading.Thread = None
         self.videoId = None
 
     def extract_and_transform(self, videoId):
@@ -35,8 +34,8 @@ class ETLService:
         :param videoId:
         :return self: return this instance of this ETLService
         """
-        comm,cnt=self._database.find_by_videoId(videoId,cash=True)
-        if cnt==0:
+        comm, cnt = self._database.find_by_videoId(videoId, cash=True)
+        if cnt == 0:
             self.comments = list()
             self._json_comments = queue.Queue()
             self._logger.info('Starting data extraction thread')
@@ -49,21 +48,21 @@ class ETLService:
             self._transformer_thread.join()
             self._logger.info('extraction and transformation finished with success')
         else:
-            self.comments=comm
+            self.comments = comm
         return self
 
     def load(self):
         """
-        this method will try to save the transformed data to
+        this method will try to save the transformed data to db
 
         :return boolean:True if success else False
         """
         try:
             if self.comments:
-                return self._database.load_data(self.comments),"Success"
+                return self._database.load_data(self.comments)
         except Exception as e:
-            return False,str(e)
-
+            self._logger.warning(str(e))
+            return False
 
     def _get_api_comments(self, videoId):
         """

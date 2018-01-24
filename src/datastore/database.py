@@ -33,9 +33,7 @@ class Database:
 
         :param collection_name:
         :param indexed_field: field to be indexed
-        :param default_lang: default language for indexing english
         """
-        self._db[collection_name].inde
         try:
             self._db[collection_name].create_index([(indexed_field, mongo.TEXT)],language_override="lang")
         except mongo.errors.PyMongoError:
@@ -52,7 +50,7 @@ class Database:
         except mongo.errors.PyMongoError:
             raise Exception('failed to insert data')
 
-    def find_by_video_id(self, collection_name, video_id,kvargs={}):
+    def find_by_video_id(self, collection_name, video_id,projection={}):
         """
 
         :param collection_name:
@@ -62,7 +60,7 @@ class Database:
         :return:
         """
         try:
-            return self._db[collection_name].find({'videoId': video_id}, kvargs)
+            return self._db[collection_name].find({'videoId': video_id}, projection)
         except mongo.errors.PyMongoError:
             raise Exception('failed to find video by id')
 
