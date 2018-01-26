@@ -38,7 +38,7 @@ def get_comments(json_string, video_id):
                 'comment': " ".join(comment),
                 'original_comment':original_comment,
                 'lang': lang,
-                'authorChannelUrl':item["snippet"]['topLevelComment']["snippet"]["authorChannelUrl"],
+                'authorChannelId':item["snippet"]['topLevelComment']["snippet"]["authorChannelId"]["value"],
                 'likes': item["snippet"]['topLevelComment']["snippet"]['likeCount']
             }
             comments.append(formated_dict)
