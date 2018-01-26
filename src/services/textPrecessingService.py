@@ -1,6 +1,5 @@
 from collections import Counter
 from logging import getLogger as _getLogger
-
 from langdetect import detect, DetectorFactory
 from langdetect.lang_detect_exception import LangDetectException
 from nltk.stem import SnowballStemmer as _SnowballStemmer
