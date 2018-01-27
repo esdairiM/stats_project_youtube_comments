@@ -36,16 +36,22 @@ class DatabaseService:
             # Error occurred while inserting comments
             raise e
 
-    def verify_collection_existence(self) -> None:
+    def verify_collection_existence(self, collection="", withIndex=True) -> None:
         try:
-            self._database.create_store(self._collection_name)
+            if collection == "":
+                self._database.create_store(self._collection_name)
+            else:
+                self._database.create_store(collection)
         except Exception as e:
             self._logger.warning(str(e))
             pass
-        try:
-            self._database.create_text_index(self._collection_name, "comment")
-        except Exception as e:
-            self._logger.warning(str(e))
+        if withIndex:
+            try:
+                self._database.create_text_index(self._collection_name, "comment")
+            except Exception as e:
+                self._logger.warning(str(e))
+                pass
+        else:
             pass
 
     def find_by_videoId(self, videoId, cash=True, projection={}) -> tuple:
@@ -106,6 +112,15 @@ class DatabaseService:
         except Exception as e:
             self._logger.warning(str(e))
             return [], 0
+
+    def find_video_data(self, videoId, collection='video'):
+        try:
+            return list(self._database.find_by_query(collection, {'videoId': videoId}))
+        except:
+            return list()
+    def simple_save(self, data, collection='video'):
+        self.verify_collection_existence(collection=collection, withIndex=False)
+        self._database.insert_one(collection, data)
 
     def _cash_result(self, cash: bool, count: int, projection: dict, result_list: list, videoId: str):
         if cash:

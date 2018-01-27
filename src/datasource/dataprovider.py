@@ -60,3 +60,10 @@ class Provider:
         except gerrors.Error as e:
             self._logger.info(e._get_reason())
             raise e
+
+    def get_video_data(self,videoId):
+        try:
+            self._logger.info("fetching comments from youtube api")
+            return self._service.videos().list(part='snippet,statistics', id=videoId).execute()
+        except gerrors.Error as e:
+            self._logger.info(e._get_reason())

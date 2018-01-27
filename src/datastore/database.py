@@ -50,6 +50,12 @@ class Database:
         except mongo.errors.PyMongoError:
             raise Exception('failed to insert data')
 
+    def insert_one(self,collection,data):
+        try:
+            return self._db[collection].insert_one(data)
+        except mongo.errors.PyMongoError:
+            raise Exception('failed to insert data')
+
     def find_by_video_id(self, collection_name, video_id,projection={}):
         """
 
@@ -72,7 +78,6 @@ class Database:
         :return:query results
         """
         try:
-            print(query)
             return self._db[collection_name].find(query)
         except mongo.errors.PyMongoError:
             raise Exception('failed to execute find request')

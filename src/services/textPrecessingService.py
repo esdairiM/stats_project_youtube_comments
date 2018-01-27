@@ -41,6 +41,7 @@ def counte_words(comments)->Counter:
 
 
 def prepare_text(comment: str, lang=None)->list:
+    print('prepar text called')
     # comment["lang"] is none if it's not supported by mongodb
     # we have to detect language to remove stope words and stemme
     try:
@@ -66,6 +67,7 @@ def prepare_text_list(comments: list)->dict:
 
 
 def stemme_words(words: list, lang) -> list:
+    print('stemme words called')
     if lang is not None and lang in _lang_names.keys():
         stemmer = _SnowballStemmer(_lang_names[lang])
         words = list(map(lambda word:stemmer.stem(word),words))
@@ -119,11 +121,12 @@ def tokenize(text) -> list:
 
 
 def get_lang(text, main_language="en")->str:
+    print('getlang called')
     try:
         lang = detect(text)
         if lang not in _mongo_langs:
             lang = main_language
         return lang
-    except LangDetectException as e:
-        _getLogger(__name__).warning(str(e))
+    except:
+        _getLogger(__name__).warning('no features in text')
         return main_language

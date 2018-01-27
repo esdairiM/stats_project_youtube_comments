@@ -5,8 +5,6 @@ from dash.dependencies import Input, Output, State
 from flask import Flask, request
 
 from src.controller import Controller
-from src.services.etl import ETLService
-from src.services.statisticsService import StatisticsService
 
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server)
@@ -42,6 +40,7 @@ app.layout = html.Div([
             {'label': 'General Information', 'value': 1},
             {'label': 'Top Comments', 'value': 2},
             {'label': 'Top Words', 'value': 3},
+            {'label': 'Gender Data', 'value': 4},
         ],
         value=3,
         id='tabs',
@@ -84,16 +83,54 @@ def tabs_controllergeneraldata(children, value):
         if value == 3:
             return frequent_words_tab(children)
 
+        if value == 4:
+            return gender_data_tab(children)
+
+
+def gender_data_tab(children):
+    resdict = controller.get_gender_percentage(children)
+    labels = list(resdict.keys())
+    values = list(resdict.values())
+    print(labels)
+    print(values)
+    data = [
+        {
+            'values': values,
+            'labels': labels,
+            'type': 'pie',
+        },
+    ]
+    return html.Div([
+        html.H3('Gender frequency in comments of video with ID ({})'.format(children),
+                style={'textAlign': 'center'}),
+        dcc.Graph(
+            id='graph',
+            figure={
+                'data': data,
+                'layout': {
+                    'margin': {
+                        'l': 30,
+                        'r': 0,
+                        'b': 30,
+                        't': 0
+                    },
+                    'legend': {'x': 0, 'y': 1},
+                    'font': {'size': 20}
+                }
+            }
+        )
+    ])
+
 
 def frequent_words_tab(children):
     top_words = controller.get_frequent_words(children)
-    words=list(top_words.keys())
-    count=list(top_words.values())
+    words = list(top_words.keys())
+    count = list(top_words.values())
     return html.Div([
         html.H3('Top 10 frequent words video with ID ({})'.format(children),
                 style={'textAlign': 'center'}),
         dcc.Graph(
-            id='example-graph',
+            id='frequent-words-graph',
             figure={
                 'data': [
                     {'x': words, 'y': count, 'type': 'bar', 'name': 'Words Count'},
@@ -107,11 +144,11 @@ def frequent_words_tab(children):
         html.Div([
             html.Div([
                 html.Div([
-                    html.Label('Note* :', style={'color':'green'}),
+                    html.Label('Note* :', style={'color': 'green'}),
                     html.P('Top ten frequent words in comments for a video', style={'color': 'green'})
                 ], style=style_horGroup),
                 html.Div([
-                    html.Label('Note* :', style={'color': 'red'}),
+                    html.Label('Note* :', style={'color': 'green'}),
                     html.P('''this list doesn't take in account stop words and punctuation''', style={'color': 'green'})
                 ], style=style_horGroup),
                 html.Div([
@@ -125,7 +162,7 @@ def frequent_words_tab(children):
 
 def general_data_tab(children):
     count = controller.get_comments_count(children)
-    most_popular = controller.get_popular_comment(children)
+    data = controller.get_video_data(children)
     return html.Div([
         html.H4('General Information', style={'textAlign': 'center'}),
         html.Div([
@@ -136,9 +173,30 @@ def general_data_tab(children):
                     html.P(str(count), style=style_label)
                 ], style=style_horGroup)
             ], id='general-data', style=style_card),
-            # popular comment card
-            html.H4('Most popular comment'),
-            html.Div(children=generate_commente_card([most_popular], 'most-popular-card'))
+            # general data card
+            html.Div([
+                html.H4('Video General Information'),
+                html.Div([
+                    html.Label('Video :', style=style_label),
+                    dcc.Link(data['title'],href=data['videoUrl'],style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('View count :', style=style_label),
+                    html.P(data['viewCount'], style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Likes count :', style=style_label),
+                    html.P(data['likeCount'], style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Dislike Count :', style=style_label),
+                    html.P(data['dislikeCount'], style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Channel :', style=style_label),
+                    dcc.Link('Video youtube channel',href=data['channelUrl'],style=style_label)
+                ], style=style_horGroup)
+            ], id='general-data', style=style_card)
         ], id='cards', style={'textAlign': 'center'})
     ], id='tab-container', className='container')
 
@@ -147,7 +205,7 @@ def first_quarter_tab(children):
     quarter = controller.get_first_quarter(children)
     return html.Div([
         html.Div([
-            html.H4('Most popular comment'),
+            html.H4('First Quarter Comments'),
             # comments count card
             html.Div([
                 html.Div([
@@ -164,8 +222,9 @@ def first_quarter_tab(children):
 def generate_commente_card(comments: list, id: str):
     cards = []
     for index, comment in enumerate(comments):
-        cards.append(
-            html.Div([
+        card=[]
+        if index==0:card.append(html.H4('Most Likes Comment'))
+        card.extend([
                 html.Div([
                     html.Label('Likes count :', style=style_label),
                     html.P(comment['likes'], style=style_label)
@@ -182,7 +241,9 @@ def generate_commente_card(comments: list, id: str):
                     html.Label('Comment :', style=style_label),
                     html.P(comment['original_comment'], style=style_label)
                 ], style=style_horGroup)
-            ], id=str(index) + id, style=style_card)
+            ])
+        cards.append(
+            html.Div(card,id=str(index) + id, style=style_card)
         )
     return cards
 
@@ -194,19 +255,15 @@ msg = ""
 # message when getting gender data is loaded
 @server.route('/youtubestats/api/v1/gender', methods=['POST'])
 def genderdata_resuls():
-    print('target')
     global msg
-    if request.json:
-        msg = '''finished '''
-    else:
-        msg = '''failed  '''
+    if request is None or not request.json or not 'status' in request.json:
+        msg = request.json['status']
+    # request with json
     return 'ok', 200
 
 
 if __name__ == '__main__':
-    stat_service = StatisticsService()
-    etl = ETLService()
-    controller = Controller(etl, stat_service)
+    controller = Controller()
     style_card = {
         'box-shadow': '0 8px 16px 0 rgba(0,0,0,0.2)',
         'width': '100%',
@@ -216,4 +273,4 @@ if __name__ == '__main__':
     style_container = {'padding': '2%', 'marging': '2%'}
     style_label = {'padding': '1% 1% 1% 1%', 'font-size': '1.3em'}
     style_horGroup = {'textAlign': 'left', 'display': 'flex', 'flex-direction': 'row'}
-    app.run_server(debug=True)
+    app.run_server(debug=True, port=8000)

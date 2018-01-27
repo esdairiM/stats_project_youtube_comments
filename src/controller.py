@@ -1,14 +1,21 @@
+import logging
+
+from src.datastore.factory import DatabaseFactory
 from src.services.etl import ETLService
 from src.services.statisticsService import StatisticsService
 
 
 class Controller():
-    def __init__(self, etl_service: ETLService, statistics_service: StatisticsService):
-        self.etl_service = etl_service
-        self.statistics_service = statistics_service
+    def __init__(self):
+        self.etl_service = ETLService()
+        self._logger = logging.getLogger(__name__)
+        self.statistics_service = StatisticsService()
+        self.database = DatabaseFactory().build().get_database_service()
 
     def etl(self, videoId):
-        return self.etl_service.extract_and_transform(videoId).load()
+        print('getting comments ' + videoId)
+        res = self.etl_service.extract_and_transform(videoId).load()
+        return res
 
     def get_comments_count(self, videoId):
         return self.statistics_service.get_comments_count(videoId)
@@ -27,3 +34,9 @@ class Controller():
 
     def get_expressions_proba(self, videoId, expression1, expression2):
         return self.statistics_service.prob_cond(expression1, expression2, videoId)
+
+    def get_gender_percentage(self, videoId):
+        return self.statistics_service.gender_percent(videoId)
+
+    def get_video_data(self,videoId):
+        return self.database.find_video_data(videoId)[0]

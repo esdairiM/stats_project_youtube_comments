@@ -156,3 +156,22 @@ class StatisticsService:
         result = prepare_text_list(results_list)
         df = pd.DataFrame(result)
         return df
+
+    def gender_percent(self, videoId):
+        try:
+            counter = self._database_service.find_video_data(videoId, collection='genderData')[0]
+            totalcount = self.get_comments_count(videoId)
+            fre = {
+                'male': counter['male'],
+                'female': counter['female'],
+                'other': counter['other'],
+                'uknown': totalcount - counter['male'] - counter['female'] - counter['other'],
+            }
+        except:
+            fre = {
+                'male': 0,
+                'female': 0,
+                'other': 0,
+                'uknown': 0,
+            }
+        return fre
