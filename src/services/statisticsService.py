@@ -67,7 +67,7 @@ class StatisticsService:
         if comments is None:
             comments = self._database_service.find_by_videoId(videoId)[0]
         words = popular_words(comments, first)
-        return words
+        return dict(words)
 
     def barpolt_dict(self, data: dict):
         plt.bar(range(len(data)), data.values(), align='center')

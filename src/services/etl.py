@@ -21,12 +21,12 @@ class ETLService:
         self._api = datasource.DataSourceFactory().get_api_connection()
         self._database = datastore.DatabaseFactory().build().get_database_service()
         self.comments = list()
+        self.doload=True
         self._json_comments = queue.Queue()
         self._extractor_thread: threading.Thread = None
         self._transformer_thread: threading.Thread = None
-        self.videoId = None
 
-    def extract_and_transform(self, videoId):
+    def extract_and_transform(self, videoId:str):
         """
         this methode will load data from the api for a given videoid and
         transform it to the desired format
@@ -46,9 +46,11 @@ class ETLService:
             self._transformer_thread.start()
             self._extractor_thread.join()
             self._transformer_thread.join()
+            self.doload=True
             self._logger.info('extraction and transformation finished with success')
         else:
             self.comments = comm
+            self.doload=False
         return self
 
     def load(self):
@@ -58,13 +60,15 @@ class ETLService:
         :return boolean:True if success else False
         """
         try:
-            if self.comments:
+            if self.doload:
                 return self._database.load_data(self.comments)
+            else:
+                return True
         except Exception as e:
             self._logger.warning(str(e))
             return False
 
-    def _get_api_comments(self, videoId):
+    def _get_api_comments(self, videoId:str):
         """
         get a 100 comments each time and add theme to a queue
         :param videoId:
@@ -72,7 +76,7 @@ class ETLService:
         for res in self._api.get_all_comments(videoId):
             self._json_comments.put(res)
 
-    def _process_comments(self, videoId):
+    def _process_comments(self, videoId:str):
         """
         while the tread is alive it will take out data from the queue and transform it
         :param videoId:

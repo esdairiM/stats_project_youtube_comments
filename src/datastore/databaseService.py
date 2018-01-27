@@ -1,5 +1,4 @@
 import logging
-from datetime import datetime as dt
 
 from src.datastore.database import Database
 
@@ -14,7 +13,7 @@ class DatabaseService:
         self._last_find_count = 0
         self._last_projection: dict = None
 
-    def load_data(self, comments:list) -> bool:
+    def load_data(self, comments: list) -> bool:
         """
         load a list to database, raise exception
         :param comments:
@@ -24,17 +23,12 @@ class DatabaseService:
         try:
             # if comments not empty
             if comments:
-                comm, cnt = self.find_by_videoId(comments[0]["videoId"], cash=True)
-                if cnt == 0 or (dt.now() - comments[0]["created_at"]).days > 1:
-                    # try to create collection and index
-                    self.verify_collection_existence()
-                    # insert data
-                    self._database.insert(self._collection_name, comments)
-                    self._logger.info('finished loading data')
-                    return True
-                else:
-                    # data already exists
-                    raise Exception("comments for this video were loaded less then a day ago")
+                # try to create collection and index
+                self.verify_collection_existence()
+                # insert data
+                self._database.insert(self._collection_name, comments)
+                self._logger.info('finished loading data')
+                return True
             else:
                 # comments list is empty
                 return False
@@ -64,7 +58,7 @@ class DatabaseService:
         '''
         # elements to project: 1 project, 0 ignore
         projection = {"comment": 1, "original_comment": 1, "author": 1, "created_at": 1, "lang": 1, "likes": 1,
-                  "_id": 0} if projection == {} else projection
+                      "_id": 0} if projection == {} else projection
 
         # if videoid is the same as last one return last result
         if cash and videoId == self._last_videoId and self._last_projection == projection:
