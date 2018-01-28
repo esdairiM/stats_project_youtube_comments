@@ -13,7 +13,7 @@ class DatabaseFactory:
     def build(self):
         try:
             self._logger.info('fetching the database configuration file')
-            with open('../configuration/database_config.json', 'r') as config:
+            with open('./configuration/database_config.json', 'r') as config:
                 database_conf = json.load(config)
             self._logger.info('building the database connection provider')
             self._database_connection=database.Database(database_conf)

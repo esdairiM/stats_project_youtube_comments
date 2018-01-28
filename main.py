@@ -8,6 +8,7 @@ from src.controller import Controller
 
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server)
+app.config.suppress_callback_exceptions = True
 app.scripts.config.serve_locally = True
 app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 
@@ -84,25 +85,77 @@ def tabs_controllergeneraldata(children, value):
 
         if value == 4:
             return gender_data_tab(children)
-        if value==5:
+        if value == 5:
             return expression_search_tab(children)
 
 
-# @app.callback(Output('expression-proba', 'children'),
-#               [Input('submit-expre', 'n_clicks'),
-#                Input('intermediate-data', 'children')],
-#               [State('expre-one', 'value'),
-#                State('input-expre-one','value')])
-# def expression_stats(n_clicks,videoId,expression1,expression2):
-#     if videoId!='failed' and expression1!='':
-#         if expression2=='':
-#             res=controller.get_expression_frequency(videoId,expression1)
-#         else:
-#             res=controller.get_expressions_proba(videoId,expression1,expression2)
-#         return str(res)
+@app.callback(Output('expression-proba', 'children'),
+              [Input('submit-expre', 'n_clicks'),
+               Input('intermediate-data', 'children')],
+              [State('input-expre-one', 'value'),
+               State('input-expre-two', 'value')])
+def expression_stats(n_clicks, videoId, expression1, expression2):
+    if videoId != 'failed' and expression1 != '':
+        if expression2 == '':
+            res = controller.get_expression_frequency(videoId, expression1)
+            return html.Div([
+                html.H4('Results', style={'textAlign': 'center'}),
+                html.Div([
+                    html.Label('Expression          :', style=style_label),
+                    html.P(expression1, style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Frequency           :', style=style_label),
+                    html.P(str(round(res['frequency'],4)), style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Mention per comment :', style=style_label),
+                    html.P(str(round(res['mpc'],4)), style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            html.Label('Note* :', style={'color': 'green'}),
+                            html.P('Frequency is calculated over the entire data set ', style={'color': 'green'})
+                        ], style=style_horGroup),
+                        html.Div([
+                            html.Label('Note* :', style={'color': 'green'}),
+                            html.P('Mention per comment is calculated only over the comments where the expression is '
+                                   'mentioned ', style={'color': 'green'})
+                        ], style=style_horGroup)
+                    ], id='general-data', style=style_card)
+                ], id='tab-container', className='container')
+            ])
+        else:
+            res = controller.get_expressions_proba(videoId, expression1, expression2)
+            return html.Div([
+                html.H4('Results', style={'textAlign': 'center'}),
+                html.Div([
+                    html.Label('Expression one occurrences           :', style=style_label),
+                    html.P(str(round(res['ex1_occurence'],4)), style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Expression two occurrences           :', style=style_label),
+                    html.P(str(round(res['ex2_occurence'],4)), style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Expression one Existence probability :', style=style_label),
+                    html.P(str(round(res['proba'])), style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Div([
+                        html.Div([
+                            html.Label('Note* :', style={'color': 'green'}),
+                            html.P('The probability is that of the existence of the expression one knowing that '
+                                   'expression two exists', style={'color': 'green'})
+                        ], style=style_horGroup)
+                    ], id='general-data', style=style_card)
+                ], id='tab-container', className='container')
+            ])
+
 
 def expression_search_tab(videoId):
-    ex_card=dict(style_card)
+    ex_card = dict(style_card)
     del ex_card['width']
     # ex_card['padding']='2% 2%'
     return html.Div([
@@ -114,10 +167,10 @@ def expression_search_tab(videoId):
                 dcc.Textarea(
                     placeholder='Enter a value...',
                     value='',
-                    style={'width': '103%','resize':'none'},
+                    style={'width': '103%', 'resize': 'none'},
                     id='input-expre-one'
                 ),
-                html.Label('Second expression',style= style_label),
+                html.Label('Second expression', style=style_label),
                 dcc.Textarea(
                     placeholder='Enter a value...',
                     value='',
@@ -126,14 +179,15 @@ def expression_search_tab(videoId):
                 ),
                 html.Hr(),
                 html.Button(children='Search', id='submit-expre', style=style_container)
-            ],className="four columns",style=ex_card),
+            ], className="four columns", style=ex_card),
             # 2nd col
             html.Div([
-            ],className="eight columns",id='expression-proba',style=ex_card)
+            ], className="eight columns", id='expression-proba', style=ex_card)
 
-        # end row
-        ],className='row')
-    ],style=style_container)
+            # end row
+        ], className='row')
+    ], style=style_container)
+
 
 def gender_data_tab(children):
     resdict = controller.get_gender_percentage(children)
@@ -212,21 +266,13 @@ def general_data_tab(children):
     count = controller.get_comments_count(children)
     data = controller.get_video_data(children)
     return html.Div([
-        html.H4('General Information', style={'textAlign': 'center'}),
+        html.H4('Video Information', style={'textAlign': 'center'}),
         html.Div([
-            # comments count card
-            html.Div([
-                html.Div([
-                    html.Label('Comments count :', style=style_label),
-                    html.P(str(count), style=style_label)
-                ], style=style_horGroup)
-            ], id='general-data', style=style_card),
             # general data card
             html.Div([
-                html.H4('Video General Information'),
                 html.Div([
                     html.Label('Video :', style=style_label),
-                    dcc.Link(data['title'],href=data['videoUrl'],style=style_label)
+                    html.A(data['title'], href=data['videoUrl'], style=style_label)
                 ], style=style_horGroup),
                 html.Div([
                     html.Label('View count :', style=style_label),
@@ -242,7 +288,11 @@ def general_data_tab(children):
                 ], style=style_horGroup),
                 html.Div([
                     html.Label('Channel :', style=style_label),
-                    dcc.Link('Video youtube channel',href=data['channelUrl'],style=style_label)
+                    html.A('youtube channel',href=data['channelUrl'], style=style_label)
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Comments count :', style=style_label),
+                    html.P(str(count), style=style_label)
                 ], style=style_horGroup)
             ], id='general-data', style=style_card)
         ], id='cards', style={'textAlign': 'center'})
@@ -270,33 +320,34 @@ def first_quarter_tab(children):
 def generate_commente_card(comments: list, id: str):
     cards = []
     for index, comment in enumerate(comments):
-        card=[]
-        if index==0:card.append(html.H4('Most Likes Comment'))
+        card = []
+        if index == 0: card.append(html.H4('Most Popular Comment'))
         card.extend([
-                html.Div([
-                    html.Label('Likes count :', style=style_label),
-                    html.P(comment['likes'], style=style_label)
-                ], style=style_horGroup),
-                html.Div([
-                    html.Label('Author :', style=style_label),
-                    html.P(comment['author'], style=style_label)
-                ], style=style_horGroup),
-                html.Div([
-                    html.Label('Posting date :', style=style_label),
-                    html.P(comment['created_at'].strftime("%B %d, %Y at %H:%M:%S"), style=style_label)
-                ], style=style_horGroup),
-                html.Div([
-                    html.Label('Comment :', style=style_label),
-                    html.P(comment['original_comment'], style=style_label)
-                ], style=style_horGroup)
-            ])
+            html.Div([
+                html.Label('Likes count :', style=style_label),
+                html.P(comment['likes'], style=style_label)
+            ], style=style_horGroup),
+            html.Div([
+                html.Label('Author :', style=style_label),
+                html.P(comment['author'], style=style_label)
+            ], style=style_horGroup),
+            html.Div([
+                html.Label('Posting date :', style=style_label),
+                html.P(comment['created_at'].strftime("%B %d, %Y at %H:%M:%S"), style=style_label)
+            ], style=style_horGroup),
+            html.Div([
+                html.Label('Comment :', style=style_label),
+                html.P(comment['original_comment'], style=style_label)
+            ], style=style_horGroup)
+        ])
         cards.append(
-            html.Div(card,id=str(index) + id, style=style_card)
+            html.Div(card, id=str(index) + id, style=style_card)
         )
     return cards
 
 
 msg = ""
+
 
 #
 # message when getting gender data is loaded
