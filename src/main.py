@@ -14,8 +14,6 @@ app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'
 app.layout = html.Div([
     ################################  HIDEN INPUT  #####################################
     html.Div(children=[], id='intermediate-data', style={'display': 'none'}),
-    html.Div(children=[], id='gender-results'),
-    dcc.Input(value='', type='text', id='submit-gender-results', style={'display': 'none'}),
     #################################  HEAD OF PAGE ####################################
     # title
     html.H1('YoutubeStats'),
@@ -41,6 +39,7 @@ app.layout = html.Div([
             {'label': 'Top Comments', 'value': 2},
             {'label': 'Top Words', 'value': 3},
             {'label': 'Gender Data', 'value': 4},
+            {'label': 'Search for Expression', 'value': 5}
         ],
         value=3,
         id='tabs',
@@ -85,7 +84,56 @@ def tabs_controllergeneraldata(children, value):
 
         if value == 4:
             return gender_data_tab(children)
+        if value==5:
+            return expression_search_tab(children)
 
+
+# @app.callback(Output('expression-proba', 'children'),
+#               [Input('submit-expre', 'n_clicks'),
+#                Input('intermediate-data', 'children')],
+#               [State('expre-one', 'value'),
+#                State('input-expre-one','value')])
+# def expression_stats(n_clicks,videoId,expression1,expression2):
+#     if videoId!='failed' and expression1!='':
+#         if expression2=='':
+#             res=controller.get_expression_frequency(videoId,expression1)
+#         else:
+#             res=controller.get_expressions_proba(videoId,expression1,expression2)
+#         return str(res)
+
+def expression_search_tab(videoId):
+    ex_card=dict(style_card)
+    del ex_card['width']
+    # ex_card['padding']='2% 2%'
+    return html.Div([
+        # row
+        html.Div([
+            # 1st col
+            html.Div([
+                html.Label('First expression', style=style_label),
+                dcc.Textarea(
+                    placeholder='Enter a value...',
+                    value='',
+                    style={'width': '103%','resize':'none'},
+                    id='input-expre-one'
+                ),
+                html.Label('Second expression',style= style_label),
+                dcc.Textarea(
+                    placeholder='Enter a value...',
+                    value='',
+                    style={'width': '103%', 'resize': 'none'},
+                    id='input-expre-two'
+                ),
+                html.Hr(),
+                html.Button(children='Search', id='submit-expre', style=style_container)
+            ],className="four columns",style=ex_card),
+            # 2nd col
+            html.Div([
+            ],className="eight columns",id='expression-proba',style=ex_card)
+
+        # end row
+        ],className='row')
+    ],style=style_container)
 
 def gender_data_tab(children):
     resdict = controller.get_gender_percentage(children)
@@ -250,7 +298,6 @@ def generate_commente_card(comments: list, id: str):
 
 msg = ""
 
-
 #
 # message when getting gender data is loaded
 @server.route('/youtubestats/api/v1/gender', methods=['POST'])
@@ -270,7 +317,7 @@ if __name__ == '__main__':
         'border-radius': '2%',
         'padding': '2% 2%'
     }
-    style_container = {'padding': '2%', 'marging': '2%'}
+    style_container = {'marging': '2% 2% 2% 2%'}
     style_label = {'padding': '1% 1% 1% 1%', 'font-size': '1.3em'}
     style_horGroup = {'textAlign': 'left', 'display': 'flex', 'flex-direction': 'row'}
     app.run_server(debug=True, port=8000)
