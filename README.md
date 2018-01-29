@@ -31,7 +31,7 @@ After completing the Installation steps, you are ready to run the application:
 * Activate the conda conda environment:
 
 ```
-activate untitled1
+activate statistics
 ```
 * Run the project by calling the main.py from the same console session where the environment is activated:
 
@@ -41,8 +41,8 @@ python main.py
 
 ## Authors
 
-* **ESDAIRI Mohamed** 
 * **LMARBOUH Mhamed** 
+* **ESDAIRI Mohamed** 
 
 
 ## Acknowledgments
