@@ -1,7 +1,6 @@
 import logging
 from math import ceil
 
-import matplotlib.pyplot as plt
 import pandas as pd
 
 from src.datastore.databaseService import DatabaseService
@@ -68,11 +67,6 @@ class StatisticsService:
             comments = self._database_service.find_by_videoId(videoId)[0]
         words = popular_words(comments, first)
         return dict(words)
-
-    def barpolt_dict(self, data: dict):
-        plt.bar(range(len(data)), data.values(), align='center')
-        plt.xticks(range(len(data)), data.keys())
-        plt.show()
 
     def expression_statistics(self, expression, videoId) -> dict:
         # preparing the expression
@@ -164,14 +158,22 @@ class StatisticsService:
             counter = self._database_service.find_video_data(videoId, collection='genderData')[0]
             totalcount = self.get_comments_count(videoId)
             fre = {}
-            try:fre.update({'male': counter['male']})
-            except KeyError:pass
-            try:fre.update({'female': counter['female']})
-            except KeyError:pass
-            try:fre.update({'other': counter['other']})
-            except KeyError:pass
-            try:fre.update({ 'uknown': totalcount - counter['male'] - counter['female'] - counter['other']})
-            except KeyError:pass
+            try:
+                fre.update({'male': counter['male']})
+            except KeyError:
+                pass
+            try:
+                fre.update({'female': counter['female']})
+            except KeyError:
+                pass
+            try:
+                fre.update({'other': counter['other']})
+            except KeyError:
+                pass
+            try:
+                fre.update({'uknown': totalcount - counter['male'] - counter['female'] - counter['other']})
+            except KeyError:
+                pass
         except IndexError:
             fre = {
                 'male': 0,
