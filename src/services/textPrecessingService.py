@@ -45,7 +45,7 @@ def prepare_text(comment: str, lang=None)->list:
     # comment["lang"] is none if it's not supported by mongodb
     # we have to detect language to remove stope words and stemme
     try:
-        lang = lang if lang != "none" and lang!= None else get_lang(comment)
+        lang = get_lang_for_preparetext(comment)
     except  LangDetectException as e:
         _getLogger(__name__).warning(str(e))
         pass
@@ -56,7 +56,8 @@ def prepare_text(comment: str, lang=None)->list:
     # remove stop words
     filtred_words = remove_stop_words(filtred_words, lang)
     # stemme words
-    filtred_words = stemme_words(filtred_words, lang)
+    if lang!='ar':
+        filtred_words = stemme_words(filtred_words, lang)
     return filtred_words
 
 
@@ -121,10 +122,19 @@ def tokenize(text) -> list:
 
 
 def get_lang(text, main_language="en")->str:
-    print('getlang called')
     try:
         lang = detect(text)
         if lang not in _mongo_langs:
+            lang = main_language
+        return lang
+    except:
+        _getLogger(__name__).warning('no features in text')
+        return main_language
+
+def get_lang_for_preparetext(text, main_language="en")->str:
+    try:
+        lang = detect(text)
+        if lang not in _lang_names.keys():
             lang = main_language
         return lang
     except:

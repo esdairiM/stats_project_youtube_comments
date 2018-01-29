@@ -31,7 +31,7 @@ def get_comments(json_string, video_id):
         for item in json_string["items"]:
             lang = get_lang(item["snippet"]['topLevelComment']["snippet"]['textOriginal'])
             original_comment = item["snippet"]['topLevelComment']["snippet"]['textOriginal']
-            comment = prepare_text(original_comment, lang=lang)
+            comment = prepare_text(original_comment)
             formated_dict = {
                 'videoId': video_id,
                 'created_at': datetime.now(),
