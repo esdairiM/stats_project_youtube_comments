@@ -42,7 +42,7 @@ app.layout = html.Div([
             {'label': 'Gender Data', 'value': 4},
             {'label': 'Search for Expression', 'value': 5}
         ],
-        value=3,
+        value=1,
         id='tabs',
         vertical=False
     ),
@@ -106,11 +106,11 @@ def expression_stats(n_clicks, videoId, expression1, expression2):
                 ], style=style_horGroup),
                 html.Div([
                     html.Label('Frequency           :', style=style_label),
-                    html.P(str(round(res['frequency'],4)), style=style_label)
+                    html.P(str(res['frequency']), style=style_label)
                 ], style=style_horGroup),
                 html.Div([
                     html.Label('Mention per comment :', style=style_label),
-                    html.P(str(round(res['mpc'],4)), style=style_label)
+                    html.P(str(res['mpc']), style=style_label)
                 ], style=style_horGroup),
                 html.Div([
                     html.Div([
@@ -132,15 +132,15 @@ def expression_stats(n_clicks, videoId, expression1, expression2):
                 html.H4('Results', style={'textAlign': 'center'}),
                 html.Div([
                     html.Label('Expression one occurrences           :', style=style_label),
-                    html.P(str(round(res['ex1_occurence'],4)), style=style_label)
+                    html.P(str(res['ex1_occurence']), style=style_label)
                 ], style=style_horGroup),
                 html.Div([
                     html.Label('Expression two occurrences           :', style=style_label),
-                    html.P(str(round(res['ex2_occurence'],4)), style=style_label)
+                    html.P(str(res['ex2_occurence']), style=style_label)
                 ], style=style_horGroup),
                 html.Div([
                     html.Label('Expression one Existence probability :', style=style_label),
-                    html.P(str(round(res['proba'])), style=style_label)
+                    html.P(str(res['proba']), style=style_label)
                 ], style=style_horGroup),
                 html.Div([
                     html.Div([
@@ -190,38 +190,52 @@ def expression_search_tab(videoId):
 
 
 def gender_data_tab(children):
+    print(children)
     resdict = controller.get_gender_percentage(children)
-    labels = list(resdict.keys())
     values = list(resdict.values())
-    print(labels)
     print(values)
-    data = [
-        {
-            'values': values,
-            'labels': labels,
-            'type': 'pie',
-        },
-    ]
-    return html.Div([
-        html.H3('Gender frequency in comments of video with ID ({})'.format(children),
-                style={'textAlign': 'center'}),
-        dcc.Graph(
-            id='graph',
-            figure={
-                'data': data,
-                'layout': {
-                    'margin': {
-                        'l': 30,
-                        'r': 0,
-                        'b': 30,
-                        't': 0
-                    },
-                    'legend': {'x': 0, 'y': 1},
-                    'font': {'size': 20}
+    if values[0]!=0 and values[1]!=0 or values[2]!=0 or values[3]!=0:
+        labels = list(resdict.keys())
+        data = [
+            {
+                'values': values,
+                'labels': labels,
+                'type': 'pie',
+            },
+        ]
+        return html.Div([
+            html.H3('Gender frequency in comments of video with ID ({})'.format(children),
+                    style={'textAlign': 'center'}),
+            dcc.Graph(
+                id='graph',
+                figure={
+                    'data': data,
+                    'layout': {
+                        'margin': {
+                            'l': 30,
+                            'r': 0,
+                            'b': 30,
+                            't': 0
+                        },
+                        'legend': {'x': 0, 'y': 1},
+                        'font': {'size': 20}
+                    }
                 }
-            }
-        )
-    ])
+            )
+        ])
+    else:
+        return html.Div([
+            html.Div([
+                html.Div([
+                    html.Label('Note* :', style={'color': 'red','font-size': '1.5em'}),
+                    html.P('Gender data is not available yet', style={'color': 'red','font-size': '1.5em'})
+                ], style=style_horGroup),
+                html.Div([
+                    html.Label('Note* :', style={'color': 'green', 'font-size': '1.5em'}),
+                    html.P('This section will be automatically updated once data is available', style={'color': 'green', 'font-size': '1.5em'})
+                ], style=style_horGroup)
+            ], id='general-data', style=style_card)
+        ], id='tab-container', className='container')
 
 
 def frequent_words_tab(children):

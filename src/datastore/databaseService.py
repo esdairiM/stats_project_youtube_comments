@@ -54,7 +54,7 @@ class DatabaseService:
         else:
             pass
 
-    def find_by_videoId(self, videoId, cash=True, projection={}) -> tuple:
+    def find_by_videoId(self, videoId, cash=False, projection={}) -> tuple:
         '''
         :param videoId:
         :param sort:
@@ -118,6 +118,7 @@ class DatabaseService:
             return list(self._database.find_by_query(collection, {'videoId': videoId}))
         except:
             return list()
+
     def simple_save(self, data, collection='video'):
         self.verify_collection_existence(collection=collection, withIndex=False)
         self._database.insert_one(collection, data)

@@ -37,7 +37,7 @@ class ETLService:
         :param videoId:
         :return self: return this instance of this ETLService
         """
-        comm, cnt = self._database.find_by_videoId(videoId, cash=True)
+        comm, cnt = self._database.find_by_videoId(videoId, cash=False)
         if cnt == 0:
             self.comments = list()
             self._json_comments = queue.Queue()
@@ -68,7 +68,7 @@ class ETLService:
                 res = self._database.load_data(self.comments)
                 if res:
                     print('getting video data')
-                    self.etl_service.get_video_data(self.videoId)
+                    self.get_video_data(self.videoId)
                     print('fenished getting video data')
                     try:
                         url = 'http://127.0.0.1:5000/api/v1/genderstats'

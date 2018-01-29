@@ -13,7 +13,6 @@ class Controller():
         self.database = DatabaseFactory().build().get_database_service()
 
     def etl(self, videoId):
-        print('getting comments ' + videoId)
         res = self.etl_service.extract_and_transform(videoId).load()
         return res
 

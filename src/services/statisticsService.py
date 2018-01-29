@@ -115,9 +115,11 @@ class StatisticsService:
             }
         else:
             # count occurrences
-            expression1_occurrence = self._expression_occurrence(results_list, prepared_expression1, expression2_wc)
+            expression1_occurrence = self._expression_occurrence(results_list, prepared_expression1, expression1_wc)
             expression2_occurrence = self._expression_occurrence(results_list, prepared_expression2, expression2_wc)
             # calculating the probability
+            print(expression1_occurrence)
+            print(expression2_occurrence)
             conditional_probability = expression2_occurrence / expression1_occurrence
             result = {
                 "ex1_occurence": expression1_occurrence,
@@ -161,17 +163,21 @@ class StatisticsService:
         try:
             counter = self._database_service.find_video_data(videoId, collection='genderData')[0]
             totalcount = self.get_comments_count(videoId)
-            fre = {
-                'male': counter['male'],
-                'female': counter['female'],
-                'other': counter['other'],
-                'uknown': totalcount - counter['male'] - counter['female'] - counter['other'],
-            }
-        except:
+            fre = {}
+            try:fre.update({'male': counter['male']})
+            except KeyError:pass
+            try:fre.update({'female': counter['female']})
+            except KeyError:pass
+            try:fre.update({'other': counter['other']})
+            except KeyError:pass
+            try:fre.update({ 'uknown': totalcount - counter['male'] - counter['female'] - counter['other']})
+            except KeyError:pass
+        except IndexError:
             fre = {
                 'male': 0,
                 'female': 0,
                 'other': 0,
                 'uknown': 0,
             }
+        print(fre)
         return fre
