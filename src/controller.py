@@ -6,6 +6,7 @@ from src.services.statisticsService import StatisticsService
 
 
 class Controller():
+    """this class is a wrapper that provides the main with all the resources it needs"""
     def __init__(self):
         self.etl_service = ETLService()
         self._logger = logging.getLogger(__name__)

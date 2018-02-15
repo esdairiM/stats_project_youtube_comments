@@ -8,10 +8,12 @@ from src.controller import Controller
 
 server = Flask(__name__)
 app = dash.Dash(__name__, server=server)
+# Required to be able to use input inside dash tabs
 app.config.suppress_callback_exceptions = True
 app.scripts.config.serve_locally = True
 app.css.append_css({'external_url': 'https://codepen.io/chriddyp/pen/bWLwgP.css'})
 
+# Application main layout
 app.layout = html.Div([
     ################################  HIDEN INPUT  #####################################
     html.Div(children=[], id='intermediate-data', style={'display': 'none'}),
@@ -87,6 +89,7 @@ def tabs_controllergeneraldata(children, value):
             return gender_data_tab(children)
         if value == 5:
             return expression_search_tab(children)
+
 
 
 @app.callback(Output('expression-proba', 'children'),
@@ -360,16 +363,12 @@ def generate_commente_card(comments: list, id: str):
     return cards
 
 
-msg = ""
 
-
-#
 # message when getting gender data is loaded
 @server.route('/youtubestats/api/v1/gender', methods=['POST'])
 def genderdata_resuls():
-    global msg
     if request is None or not request.json or not 'status' in request.json:
-        msg = request.json['status']
+        return 'ok', 400
     # request with json
     return 'ok', 200
 

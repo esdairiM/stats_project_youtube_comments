@@ -25,7 +25,7 @@ class StatisticsService:
 
     def get_first_quarter(self, videoId: str, remove_zerolikes: bool = False) -> dict:
         """
-        fetch the 1st quarter of the video comments based on like count
+        this method fetch the 1st quarter of the video comments based on like count
 
         :param videoId:
         :param remove_zerolikes: remove comments with zero likes from the 1st quarter
@@ -48,6 +48,7 @@ class StatisticsService:
         return res
 
     def get_most_popular_comment(self, videoId: str):
+        """"fetch the most liked comment"""
         try:
             return self._database_service.find_by_videoId(videoId)[0][0]
         except:
@@ -62,6 +63,13 @@ class StatisticsService:
             }
 
     def get_words_by_frequency(self, videoId: str, comment_list: list = None, first: int = 10):
+        """
+        this methode will return a dict of words and their count
+        :param videoId:
+        :param comment_list:
+        :param first: the number of words to fetch ordered by frequancy
+        :return:
+        """
         comments = comment_list
         if comments is None:
             comments = self._database_service.find_by_videoId(videoId)[0]
@@ -69,6 +77,12 @@ class StatisticsService:
         return dict(words)
 
     def expression_statistics(self, expression, videoId) -> dict:
+        """
+        this method will return a dict with the frequency and mentions per comment for a given expression
+        :param expression:
+        :param videoId:
+        :return:
+        """
         # preparing the expression
         prepared_expression, words_number = self._processe_expressions(expression)
 
@@ -93,6 +107,14 @@ class StatisticsService:
         return res
 
     def prob_cond(self, expression1: str, expression2: str, videoId: str) -> dict():
+        """
+        this method will return a dict with each expression count and the probability of existence
+        of the expression number one knowing that expression number two exists
+        :param expression1:
+        :param expression2:
+        :param videoId:
+        :return:
+        """
         # preparing expressions
         prepared_expression1, expression1_wc = self._processe_expressions(expression1)
         prepared_expression2, expression2_wc = self._processe_expressions(expression2)
@@ -123,6 +145,25 @@ class StatisticsService:
 
         return result
 
+    def gender_percent(self, videoId):
+        """this method will get the gender count from database"""
+        try:
+            counter = self._database_service.find_video_data(videoId, collection='genderData')[0]
+            totalcount = self.get_comments_count(videoId)
+            fre = {'uknown': totalcount}
+            for key in counter.keys():
+                fre.update({key: counter[key]})
+                fre.update({'uknown': fre['uknown'] - counter[key]})
+
+        except IndexError:
+            fre = {
+                'male': 0,
+                'female': 0,
+                'other': 0,
+                'uknown': 0,
+            }
+        return fre
+
     def _processe_expressions(self, expression):
         # prepare expressions
         prepared_words = prepare_text(expression)
@@ -152,34 +193,3 @@ class StatisticsService:
         result = prepare_text_list(results_list)
         df = pd.DataFrame(result)
         return df
-
-    def gender_percent(self, videoId):
-        try:
-            counter = self._database_service.find_video_data(videoId, collection='genderData')[0]
-            totalcount = self.get_comments_count(videoId)
-            fre = {}
-            try:
-                fre.update({'male': counter['male']})
-            except KeyError:
-                pass
-            try:
-                fre.update({'female': counter['female']})
-            except KeyError:
-                pass
-            try:
-                fre.update({'other': counter['other']})
-            except KeyError:
-                pass
-            try:
-                fre.update({'uknown': totalcount - counter['male'] - counter['female'] - counter['other']})
-            except KeyError:
-                pass
-        except IndexError:
-            fre = {
-                'male': 0,
-                'female': 0,
-                'other': 0,
-                'uknown': 0,
-            }
-        print(fre)
-        return fre
