@@ -47,4 +47,4 @@ python main.py
 
 ## Acknowledgments
 
-* Greate thanks to the Dash Framework Community for the greate support.
+* Greate thanks to the Dash Framework Community for their great support.
